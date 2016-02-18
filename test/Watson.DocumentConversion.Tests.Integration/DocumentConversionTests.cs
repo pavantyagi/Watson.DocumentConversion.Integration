@@ -81,7 +81,7 @@ namespace Watson.DocumentConversion.Tests.Integration
             var service = new DocumentConversionService(Settings.Username, Settings.Password);
             string text;
 
-            dynamic config = JObject.Parse("{\"normalize_html\":{\"exclude_tags_completely\":[\"p\"]}}");
+            var config = JObject.Parse("{\"normalize_html\":{\"exclude_tags_completely\":[\"p\"]}}");
 
             using (var fs = new FileStream("SampleContent/html.html", FileMode.Open))
             {
