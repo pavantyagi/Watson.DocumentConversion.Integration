@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Watson.DocumentConversion.Enums;
 using Watson.DocumentConversion.Models;
 using Xunit;
@@ -18,10 +19,10 @@ namespace Watson.DocumentConversion.Tests.Integration
         public static IEnumerable<object[]> Files => new[]
         {
             new object[] {"SampleContent/html.html", FileType.Html},
-            //new object[] {"doc.doc", FileType.MsWordDoc},
-            //new object[] {"docx.docx", FileType.MsWordDoc},
-            //new object[] {"pdf.pdf", FileType.Pdf},
-            //new object[] {"xml.xml", FileType.Xml}
+            new object[] {"SampleContent/doc.doc", FileType.MsWordDoc},
+            new object[] {"SampleContent/docx.docx", FileType.MsWordDocx},
+            new object[] {"SampleContent/pdf.pdf", FileType.Pdf},
+            new object[] {"SampleContent/xml.xml", FileType.Xml}
         };
 
         private DocumentConversionSettings GetSettings()
@@ -35,7 +36,7 @@ namespace Watson.DocumentConversion.Tests.Integration
         public async Task ConvertDocumentToAnswersAsync(string fileName, FileType fileType)
         {
             var service = new DocumentConversionService(Settings.Username, Settings.Password);
-            IAnswers answers = null;
+            IAnswers answers;
 
             using (var fs = new FileStream(fileName, FileMode.Open))
             {
@@ -44,6 +45,51 @@ namespace Watson.DocumentConversion.Tests.Integration
 
             Assert.NotNull(answers);
             Assert.True(answers.AnswerUnits.Any());
+        }
+
+        [Theory, MemberData("Files")]
+        public async Task ConvertDocumentToHtmlAsync(string fileName, FileType fileType)
+        {
+            var service = new DocumentConversionService(Settings.Username, Settings.Password);
+            string html;
+
+            using (var fs = new FileStream(fileName, FileMode.Open))
+            {
+                html = await service.ConvertDocumentToHtmlAsync(fs, fileType);
+            }
+
+            Assert.False(string.IsNullOrWhiteSpace(html));
+        }
+
+        [Theory, MemberData("Files")]
+        public async Task ConvertDocumentToTextAsync(string fileName, FileType fileType)
+        {
+            var service = new DocumentConversionService(Settings.Username, Settings.Password);
+            string text;
+
+            using (var fs = new FileStream(fileName, FileMode.Open))
+            {
+                text = await service.ConvertDocumentToTextAsync(fs, fileType);
+            }
+
+            Assert.False(string.IsNullOrWhiteSpace(text));
+        }
+
+        [Fact]
+        public async Task ConvertDocumentToTextAsync_WithConfig()
+        {
+            var service = new DocumentConversionService(Settings.Username, Settings.Password);
+            string text;
+
+            dynamic config = JObject.Parse("{\"normalize_html\":{\"exclude_tags_completely\":[\"p\"]}}");
+
+            using (var fs = new FileStream("SampleContent/html.html", FileMode.Open))
+            {
+                text = await service.ConvertDocumentToTextAsync(fs, FileType.Html, config);
+            }
+
+            Assert.False(string.IsNullOrWhiteSpace(text));
+            Assert.False(text?.Contains("Para 1"));
         }
     }
 }
