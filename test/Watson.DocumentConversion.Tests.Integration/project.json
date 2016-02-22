@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "Newtonsoft.Json": "8.0.2",
-    "Watson.DocumentConversion": "1.0.0-build17",
+    "Watson.DocumentConversion": "1.0.0-build20",
     "xunit": "2.1.0",
     "xunit.runner.dnx": "2.1.0-rc1-build204"
   },
